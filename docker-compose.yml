@@ -1,0 +1,40 @@
+name: flagbase
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: flagbase
+      POSTGRES_PASSWORD: flagbase
+      POSTGRES_DB: flagbase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flagbase -d flagbase"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./migrations:/app/migrations
+
+volumes:
+  postgres_data:
+
+# Note: no Redis service in v1. Caching/rate limiting are v2 scope —
+# see SPEC.md Section 0 and Section 10. Add a `redis` service here
+# (with its own healthcheck and a `redis_data` volume) when v2 starts.
