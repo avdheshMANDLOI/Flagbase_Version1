@@ -1,24 +1,11 @@
-# FlagBase Backend — v1 dependencies
-# Redis / aioredis intentionally excluded — caching is v2 scope.
-# See SPEC.md Section 0 (Project Scope) and Section 10 (Redis Design).
-
 fastapi==0.115.0
-uvicorn[standard]==0.32.0
-
-# Database
-sqlalchemy[asyncio]==2.0.36
-asyncpg==0.30.0
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.35
 alembic==1.13.3
-
-# Auth
+asyncpg==0.29.0
+pydantic==2.9.2
+pydantic-settings==2.5.2
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-
-# Validation / settings
-pydantic[email]==2.9.2
-pydantic-settings==2.6.0
-
-# Evaluation engine — deterministic hashing for rollout bucketing
-mmh3==5.0.1
-
-bcrypt==4.0.1  # passlib[bcrypt] requires bcrypt<4.1 for __about__ compatibility
+passlib==1.7.4
+bcrypt==4.0.1
+mmh3==4.1.0

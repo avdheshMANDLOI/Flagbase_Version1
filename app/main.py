@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.core.database import engine
-from app.api.v1 import auth, projects
+from app.api.v1 import auth, projects, flags, api_keys, rules, evaluate, events
 
 app = FastAPI(title="FlagBase API", version="1.0.0")
 
@@ -17,15 +17,29 @@ app.add_middleware(
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
+
+# Phase 2
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
 
-# Phase 3 will add:
-# app.include_router(flags.router, prefix="/api/v1/projects/{project_id}/flags", tags=["flags"])
-# app.include_router(api_keys.router, prefix="/api/v1/projects/{project_id}/keys", tags=["api-keys"])
-# app.include_router(rules.router, prefix="/api/v1/flags", tags=["rules"])
-# app.include_router(evaluate.router, prefix="/api/v1", tags=["evaluation"])
-# app.include_router(events.router, prefix="/api/v1", tags=["events"])
+# Phase 3
+app.include_router(
+    flags.router,
+    prefix="/api/v1/projects/{project_id}/flags",
+    tags=["flags"],
+)
+app.include_router(
+    api_keys.router,
+    prefix="/api/v1/projects/{project_id}/api-keys",
+    tags=["api-keys"],
+)
+app.include_router(
+    rules.router,
+    prefix="/api/v1/flags/{flag_id}/rules",
+    tags=["rules"],
+)
+app.include_router(evaluate.router, prefix="/api/v1", tags=["evaluation"])
+app.include_router(events.router, prefix="/api/v1", tags=["events"])
 
 
 @app.get("/health", tags=["system"])
