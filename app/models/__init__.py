@@ -6,6 +6,7 @@ from app.models.ab_test import ABTest
 from app.models.ab_variant import ABVariant
 from app.models.api_key import APIKey
 from app.models.conversion_event import ConversionEvent
+from app.models.event_aggregation import EventAggregation
 from app.models.evaluation_event import EvaluationEvent
 from app.models.flag import Flag
 from app.models.flag_rule import FlagRule
@@ -17,6 +18,7 @@ __all__ = [
     "ABVariant",
     "APIKey",
     "ConversionEvent",
+    "EventAggregation",
     "EvaluationEvent",
     "Flag",
     "FlagRule",

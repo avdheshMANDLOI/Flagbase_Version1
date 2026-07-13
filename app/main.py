@@ -4,7 +4,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.core.database import engine
-from app.api.v1 import auth, projects, flags, api_keys, rules, evaluate, events
+from app.api.v1 import auth, projects, flags, api_keys, rules, evaluate, events, analytics
 
 app = FastAPI(title="FlagBase API", version="1.0.0")
 
@@ -20,6 +20,7 @@ app.add_middleware(
 
 # Phase 2
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["analytics"])
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["projects"])
 
 # Phase 3
