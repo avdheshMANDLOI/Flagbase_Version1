@@ -124,3 +124,86 @@ class EventRepository:
 
         await self.db.commit()
         return processed
+    
+    async def get_flag_timeseries(
+        self,
+        flag_id: uuid.UUID,
+        from_time: datetime,
+        to_time: datetime,
+        granularity: str = "hour",
+    ) -> list[dict]:
+        """
+        Return aggregated counts per time bucket per variation.
+
+        Why pre-aggregated buckets instead of raw COUNT(*)?
+          Raw COUNT(*) scans evaluation_events — O(n) with n events.
+          Querying event_aggregations is O(buckets) — at most 24*days rows.
+          For a 30-day range at hourly granularity, that's at most 720 rows.
+
+        Granularity:
+          "hour" — returns one row per (hour, variation)
+          "day"  — rolls up hourly buckets into daily totals in Python
+                   (simpler than DATE_TRUNC in SQLite-compatible code)
+        """
+        from sqlalchemy import select
+        from app.models.event_aggregation import EventAggregation
+
+        result = await self.db.execute(
+            select(EventAggregation).where(
+                EventAggregation.flag_id == flag_id,
+                EventAggregation.hour >= from_time,
+                EventAggregation.hour < to_time,
+            ).order_by(EventAggregation.hour)
+        )
+        rows = result.scalars().all()
+
+        if granularity == "day":
+            # Roll up hourly buckets into daily totals
+            daily: dict[tuple, int] = {}
+            for row in rows:
+                day = row.hour.replace(hour=0, minute=0, second=0, microsecond=0)
+                key = (day, row.variation)
+                daily[key] = daily.get(key, 0) + row.count
+            return [
+                {"timestamp": k[0], "variation": k[1], "count": v}
+                for k, v in sorted(daily.items())
+            ]
+
+        return [
+            {"timestamp": row.hour, "variation": row.variation, "count": row.count}
+            for row in rows
+        ]
+
+    async def get_flag_summary(
+        self,
+        flag_id: uuid.UUID,
+        from_time: datetime,
+        to_time: datetime,
+    ) -> dict:
+        """
+        Return total evaluation count and per-variation breakdown.
+        Used by the summary endpoint.
+        """
+        from sqlalchemy import select
+        from app.models.event_aggregation import EventAggregation
+
+        result = await self.db.execute(
+            select(EventAggregation).where(
+                EventAggregation.flag_id == flag_id,
+                EventAggregation.hour >= from_time,
+                EventAggregation.hour < to_time,
+            )
+        )
+        rows = result.scalars().all()
+
+        variation_totals: dict[str, int] = {}
+        for row in rows:
+            variation_totals[row.variation] = (
+                variation_totals.get(row.variation, 0) + row.count
+            )
+
+        total = sum(variation_totals.values())
+        return {
+            "total": total,
+            "variations": variation_totals,
+        }
