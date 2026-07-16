@@ -59,6 +59,10 @@ Every evaluation is automatically tracked. Analytics data is aggregated and quer
 
 ## How the Analytics Pipeline Works
 
+## System Architecture
+
+![FlagBase System Architecture](docs/architecture.png)
+
 ```
 SDK evaluates a flag
  │
